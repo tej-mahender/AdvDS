@@ -9,7 +9,7 @@ void printSolution(int dist[], int n) {
         cout << i << "\t\t" << dist[i] << endl;
 }
 
-void bellmanFord(int graph[m][m], int n, int E, int src) {
+void bellmanFord(int graph[m][m], int n, int src) {
     int dist[n];
     for (int i = 1; i <= n; i++)
         dist[i] = INT_MAX;
@@ -58,6 +58,6 @@ int main() {
     }
     cout << "Enter Source vertex: ";
     cin >> s;
-    bellmanFord(graph, n, Edges, s);
+    bellmanFord(graph, n, s);
     return 0;
 }
