@@ -1,196 +1,96 @@
-#include<iostream>
-#include<vector>
-#include<string>
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <queue>
 using namespace std;
 
-int capacity,cap;
-int size=0;
-
-template<typename T>
-class hashtable {
-public:
-      int key;
-      T value;
-      int count;
-      hashtable() : key(0), value(T()),count(0) {}
-    hashtable(int key,T value)  {
-        this->key=key;
-        this->value = value;
-    }
-};
-
-bool isPrime(int n) {
-	if (n <= 1)
-    		return false;
-	for (int i = 2; i <= n / 2; i++) {
-   	 if (n % i == 0)
-        	        return false;
-   	}
-	return true;
-}
-
-bool check_number(string str) {
-    if (!isdigit(str[0]))
-        return false;
-    return true;
-}
-
-template<typename T>
-class hashmap {
-public:
-      vector<hashtable<T>>table;
-     int hashfunction(int input) {
-        return (input % capacity);
+void buildGraph(const vector<string>& words, unordered_map<char, unordered_set<char>>& graph) {
+    // Initialize the graph with all unique characters
+    for (const string& word : words) {
+        for (char c : word) {
+            graph[c] = {};
+        }
     }
 
-     void rehash(hashmap<T> h) {
-         h.display();
-          cout << "Load factor exceeds 0.5. Rehashing..." << endl;
-         size=0;
-        vector<hashtable<T>> newTable(capacity);
-        for (int i = 0; i < table.size(); i++) {
-            if (table[i].value != T()) {
-                 int newKey = hashfunction(table[i].key);
-            newTable[newKey] = h.table[i];
-            size++;
+    // Compare adjacent words to determine character ordering
+    for (int i = 0; i < words.size() - 1; i++) {
+        const string& word1 = words[i];
+        const string& word2 = words[i + 1];
+        int minLength = min(word1.length(), word2.length());
+
+        // Find the first mismatching characters
+        for (int j = 0; j < minLength; j++) {
+            if (word1[j] != word2[j]) {
+                // Add edge from word1[j] to word2[j] in the graph
+                graph[word1[j]].insert(word2[j]);
+                break;
             }
         }
-        table = move(newTable);
-        display();
+    }
+}
+
+string alienOrder(const vector<string>& words) {
+    unordered_map<char, unordered_set<char>> graph;
+    buildGraph(words, graph);
+
+    unordered_map<char, int> inDegree;
+    // Initialize in-degree for each character
+    for (const auto& entry : graph) {
+        char node = entry.first;
+        inDegree[node] = 0;
     }
 
-    void insert(int input,T value) {
-        int key = hashfunction(input);
-        hashtable<T> entry(input,value);
-        if (table[key].value == T())     {
-            table[key] = entry;
-            table[key].count=1;
-            size++;
-        }
-        else if (table[key].value == value)   {
-            cout << "Element " << input << " already present, hence updating"<<endl;;
-            table[key].count+= 1;
-        }
-        else 
-            cout <<"ELEMENT CANNOT BE INSERTED"<<endl;
-    }
-
-    void remove_element(int input, T value)   {
-        int key = hashfunction(input);
-        if (table[key].value == value) {
-            table[key].key = 0;
-            table[key].value = T();
-            table[key].count = 0;
-            size--;
-            cout << " Element " << input << " has been removed"<<endl;
-        }
-        else 
-            cout << "This element does not exist"<<endl;
-    }
-
-
-
-
-   void search(int input,T value) {
-       int key = hashfunction(input);
-        if (table[key].value == value)  
-            cout << " Element " << input << " is found at key "<<key<<endl;
-        else 
-            cout << "This element does not exist"<<endl;
-    }
-
-    void display() {
-        for (int i = 0; i < table.size(); i++) {
-            if (table[i].value == T()) 
-                cout << "Hashed key " << i << " has no elements"<<endl;
-         else 
-                cout << "Hashed key " << i << " has value " << table[i].value << " and " << table[i].count<< " times"<<endl;
+    // Calculate in-degree for each character
+    for (const auto& entry : graph) {
+        char node = entry.first;
+        for (char neighbour : graph[node]) {
+            inDegree[neighbour]++;
         }
     }
 
-    int size_of_table()  {
-        return size;
-    }
-};
-
-template<typename T>
-void perform() {
-    int choice,type=0;
-    float loadFactor;
-    T input;
-    hashmap<T> h;
-    cout << "Enter the size:";
-    cin >> capacity;
-    cap=capacity;
-    for(int i=capacity;i>=2;i--){
-        if(isPrime(i)){
-     	   capacity=i;
-     	    break;
-       }
+    // Topological sort using BFS
+    string order = "";
+    queue<char> q;
+    for (const auto& entry : inDegree) {
+        if (entry.second == 0) {
+            q.push(entry.first);
+        }
     }
 
-    h.table.resize(capacity);
-    cout << "1.Inserting item in the Hash Table" << endl;
-    cout << "2.Removing item from the Hash Table" << endl;
-    cout << "3.Display a Hash Table" << endl;
-    cout << "4.Searching for a item in Hash Table" <<endl;
-    cout << "5.Check the size of Hash Table" << endl;
-    do {
-        cout << "Please enter your choice :";
-        cin >> choice;
-        switch (choice) {
-            case 1:
-               	 cout << "Inserting element in Hash Table"<<endl;
-               	 cout << "Enter element: ";
-               	 cin >> input;
-              	 if(check_number((input)))
-                 		 h.insert(stoi(input),input);
-                	else    
-                   		 h.insert(input.length(),input);
-        	 loadFactor = (float)h.size_of_table() / capacity;
-         	if (loadFactor > 0.5) {
-        		capacity = 2 * cap; 
-       		 for (int i = capacity; i >= 2; i--) {
-            		if (isPrime(i)) {
-               		  capacity = i;
-                		  break;
-         		   }
-       	    }
-            h.rehash(h);
+    while (!q.empty()) {
+        char node = q.front();
+        q.pop();
+        order += node;
+        order += ' '; 
+
+        for (char neighbour : graph[node]) {
+            if (--inDegree[neighbour] == 0) {
+                q.push(neighbour);
+            }
         }
-               	 break;
-            case 2:
-                	cout << "Deleting in Hash Table \n Enter the key to delete: ";
-                	cin >> input;
-              	 if(check_number((input)))
-                  		h.remove_element(stoi(input),input);
-                	else
-                   		 h.remove_element(input.length(),input);
-                	break;
-            case 3:
-                	h.display();
-                	break;
-            case 4:
-                	cout << "Searching element in Hash Table"<<endl;
-                	cout << "Enter element: ";
-                	cin >> input;
-               	if(check_number((input)))
-                  		h.search(stoi(input),input);
-                	else
-                     		h.search(input.length(),input);
-                        break;
-            case 5:
-                	cout<<"Size of Hash Table is: "<<h.size_of_table();
-                	break;
-            default:
-                	cout << "Wrong Input"<<endl;
-                	break;
-        }
-        cout << "\nDo you want to continue:(press 1 for yes): ";
-        cin >> choice;
-    } 
-    while (choice == 1);
+    }
+
+    if (order.length() / 2 != inDegree.size()) {
+        return "";
+    }
+
+    order.pop_back();
+    return order;
 }
 int main() {
-    perform<string>();
+    int n;
+    cout << "Enter the number of words: ";
+    cin >> n;
+    vector<string> words(n);
+    cout << "Enter the words: ";
+    for (int i = 0; i < n; i++) {
+        cin >> words[i];
+    }
+    string order = alienOrder(words);
+    if (order.empty()) 
+        cout << "Invalid input! The order of characters cannot be determined."<<endl;
+else 
+        cout << "Order of characters: " << order << endl;
+    return 0;
 }
