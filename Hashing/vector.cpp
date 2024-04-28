@@ -1,42 +1,45 @@
 #include<iostream>
 #include<vector>
+#include<string>
 using namespace std;
 
 int capacity;
 int size=0;
-
+template<typename T>
 class hashtable {
 public:
       int key;
-      int value;
+      T value;
       int count;
-      hashtable() : key(0), value(0),count(0) {}
+      hashtable() : key(0), value(T()),count(0) {}
 
-    hashtable(int value)
+    hashtable(int key,T value)
     {
+        this->key=key;
         this->value = value;
     }
-};
 
+};
+template<typename T>
 class hashmap {
 public:
-      vector<hashtable>table;
+      vector<hashtable<T>>table;
 
      int hashfunction(int input) {
         return (input % capacity);
     }
 
-    void insert(int input)
+    void insert(int input,T value)
      {
         int key = hashfunction(input);
-        hashtable entry(input);
-        if (table[key].value == 0)
+        hashtable<T> entry(input,value);
+        if (table[key].value == T())
             {
             table[key] = entry;
             table[key].count=1;
             size++;
         }
-        else if (table[key].value == input)
+        else if (table[key].value == value)
             {
             cout << "Element " << input << " already present, hence updating"<<endl;;
             table[key].count+= 1;
@@ -46,13 +49,13 @@ public:
         }
     }
 
-    void remove_element(int input)
+    void remove_element(int input, T value)
      {
         int key = hashfunction(input);
-        if (table[key].value == input)
+        if (table[key].value == value)
             {
             table[key].key = 0;
-            table[key].value = 0;
+            table[key].value = T();
             table[key].count = 0;
             size--;
             cout << " Element " << input << " has been removed"<<endl;
@@ -61,12 +64,12 @@ public:
             cout << "This element does not exist"<<endl;
         }
     }
-    void search(int input)
+    void search(int input,T value)
     {
        int key = hashfunction(input);
-        if (table[key].value == input)
+        if (table[key].value == value)
             {
-            cout << " Element " << input << " is found at key "<<key<<endl;
+            cout << " Element " << value << " is found at key "<<key<<endl;
         }
         else {
             cout << "This element does not exist"<<endl;
@@ -75,7 +78,7 @@ public:
     void display() {
         for (int i = 0; i < table.size(); i++)
             {
-            if (table[i].value == 0) {
+            if (table[i].value == T()) {
                 cout << "Hashed key " << i << " has no elements"<<endl;
             } else {
                 cout << "Hashed key " << i << " has value " << table[i].value << " and " << table[i].count<< " times"<<endl;
@@ -89,19 +92,27 @@ public:
 };
 bool isPrime(int n)
 {
-	if (n <= 1)
-    	return false;
-	for (int i = 2; i <= n / 2; i++)
-   	{
-   	if (n % i == 0)
-        	return false;
-   	}
-	return true;
+if (n <= 1)
+    return false;
+for (int i = 2; i <= n / 2; i++)
+    {
+    if (n % i == 0)
+        return false;
+    }
+return true;
 }
 
-int main() {
-    int choice,input;
-    hashmap h;
+bool check_number(string str) {
+    if (!isdigit(str[0]))
+        return false;
+    return true;
+}
+
+template<typename T>
+void perform() {
+    int choice,type=0;
+    T input;
+    hashmap<T> h;
     cout << "Enter the size:";
     cin >> capacity;
     for(int i=capacity;i>=2;i--){
@@ -126,12 +137,22 @@ int main() {
                 cout << "Inserting element in Hash Table"<<endl;
                 cout << "Enter element: ";
                 cin >> input;
-                h.insert(input);
+               if(check_number((input)))
+                  h.insert(stoi(input),input);
+                else
+                  {
+                    h.insert(input.length(),input);
+                  }
                 break;
             case 2:
                 cout << "Deleting in Hash Table \n Enter the key to delete: ";
                 cin >> input;
-                h.remove_element(input);
+                if(check_number((input)))
+                  h.remove_element(stoi(input),input);
+                else
+                  {
+                    h.remove_element(input.length(),input);
+                  }
                 break;
             case 3:
                 h.display();
@@ -140,7 +161,13 @@ int main() {
                 cout << "Searching element in Hash Table"<<endl;
                 cout << "Enter element: ";
                 cin >> input;
-                h.search(input);
+                if(check_number((input)))
+                  h.search(stoi(input),input);
+                else
+                  {
+                    h.search(input.length(),input);
+                  }
+                break;
             case 5:
                 cout<<"Size of Hash Table is: "<<h.size_of_table();
                 break;
@@ -151,4 +178,8 @@ int main() {
         cout << "\nDo you want to continue:(press 1 for yes): ";
         cin >> choice;
     } while (choice == 1);
+}
+int main()
+{
+    perform<string>();
 }
